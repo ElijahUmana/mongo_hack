@@ -1,0 +1,278 @@
+:root {
+  --bg: #0a0f1b;
+  --panel: #0e1627;
+  --stroke: #1f2a3c;
+  --text: #e5e7eb;
+  --muted: #9aa7b8;
+  --brand: #dbe3ec;
+  --primary: #1f4c7d;
+  --primary-2: #1a3f68;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+
+/* Layout */
+.screen {
+  max-width: 1120px;
+  margin: 24px auto;
+  padding: 0 12px;
+}
+
+.screen-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Changed */
+  padding: 10px 16px;
+  border: 1px solid var(--stroke);
+  border-radius: 10px 10px 0 0;
+  border-bottom: none;
+  background: transparent;
+}
+
+.brand {
+  font-weight: 600;
+  font-size: 1.1rem; /* Added */
+  color: #cfe0f5;
+}
+
+.workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border: 1px solid var(--stroke);
+  border-top: none;
+  background: transparent;
+}
+
+.btn-back {
+  background: #374151;
+  border: 1px solid #4b5563;
+  color: #d1d5db;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-back:hover {
+  background: #4b5563;
+}
+
+.project-id {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.grid {
+  display: grid;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid var(--stroke);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  background: transparent;
+}
+
+.grid-init {
+  grid-template-columns: 1fr;
+}
+
+.grid-workspace {
+  grid-template-columns: 1fr 2fr; /* Changed for better layout */
+}
+
+.col {
+  min-height: 340px;
+}
+
+.col-full {
+  min-height: 400px;
+}
+
+/* Panels */
+.panel {
+  height: 100%;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--panel);
+  display: flex; /* Added */
+  flex-direction: column; /* Added */
+}
+
+.panel-title {
+  color: #cfd7e4;
+  font-weight: 600;
+  margin-bottom: 12px;
+  flex-shrink: 0; /* Added */
+}
+
+/* PromptForm */
+.pf-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+
+.pf-textarea {
+  flex: 1;
+  background: #0b1423;
+  border: 1px solid #1c273c;
+  color: #d8e4f3;
+  border-radius: 10px;
+  padding: 14px;
+  resize: none;
+}
+
+/* Buttons */
+.btn-primary {
+  background: #0f4274;
+  border: 1px solid #1c5aa0;
+  color: #e8f1ff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #133e6a;
+}
+
+.btn-primary:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.btn-primary.sm {
+  padding: 8px 14px;
+  border-radius: 10px;
+}
+
+.btn-accept {
+  background: #16a34a;
+  border: 1px solid #10893a;
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.btn-accept:hover {
+  background: #15803d;
+}
+
+.btn-accept:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.btn-accept.sm {
+  padding: 8px 14px;
+  border-radius: 10px;
+}
+
+
+/* PlanDisplay */
+.plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0 0;
+  overflow-y: auto; /* Added */
+}
+
+.plan-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 6px;
+  color: #e9eef7;
+  text-align: left; /* Added */
+}
+
+.plan-list li .idx {
+  width: 18px;
+  display: inline-block;
+  color: #b7c3d3;
+}
+
+/* InteractionLog */
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto; /* Added */
+  flex-grow: 1; /* Added */
+  text-align: left; /* Added */
+}
+
+.bubble {
+  background: #0f192a;
+  border: 1px solid #1d2a3e;
+  color: #d2ddee;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.bubble .muted {
+  color: #aab6c7;
+  margin-bottom: 4px;
+  font-size: 0.8rem; /* Added */
+}
+
+/* UserInput bar */
+.user-panel {
+  margin-top: 16px;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 16px;
+  background: transparent;
+}
+
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.composer-input {
+  flex: 1;
+  background: #0b1423;
+  border: 1px solid #1c273c;
+  color: #d8e4f3;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+/* --- Append to styles.css --- */
+
+/* Plan step styling */
+.plan-step {
+  opacity: 0.6;
+  transition: all 0.2s ease-in-out;
+}
+
+.plan-step.active {
+  opacity: 1;
+  color: #a5b4fc; /* A highlight color */
+  font-weight: 600;
+}
+
+.plan-step.completed {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
