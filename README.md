@@ -7,6 +7,9 @@
 
 
 
+
+
+
 ## 🎯 Overview
 
 Hierra is an innovative agentic web application designed to revolutionize software development by automating the entire software development lifecycle from a single high-level prompt. By leveraging advanced AI agents and intelligent memory management, Hierra transforms the way developers approach project creation and management.
@@ -26,6 +29,9 @@ This approach enables Hierra to:
 - Prevent context overflow in AI processing
 - Retrieve relevant information at the appropriate level of granularity
 - Scale seamlessly as projects grow in complexity
+
+Memory Hierachy visualization
+https://github.com/user-attachments/assets/24ec0fd0-7287-4687-bf15-a241b6f5ade8
 
 ## ✨ Features
 
