@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 
-export default function UserInput({ onSend, onAccept, disabled, hasCode }) {
+export default function UserInput({ onSend, disabled }) {
   const [text, setText] = useState('proceed');
 
   function handleSend(e) {
     e.preventDefault();
-    if(!text.trim()) return;
+    if (!text.trim() || disabled) return;
     onSend?.(text);
+    // We clear the input only if the user typed something other than a confirmation
+    if (text.toLowerCase().trim() !== 'proceed') {
+      setText('');
+    }
   }
 
   return (
@@ -17,7 +21,8 @@ export default function UserInput({ onSend, onAccept, disabled, hasCode }) {
           className="composer-input"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Type 'proceed' or give feedback..."
+          placeholder="Type 'proceed' to confirm, or provide feedback..."
+          disabled={disabled}
         />
         <button 
           className="btn-primary sm" 
@@ -26,16 +31,6 @@ export default function UserInput({ onSend, onAccept, disabled, hasCode }) {
         >
           Send
         </button>
-        {hasCode && (
-          <button 
-            type="button"
-            className="btn-accept sm" 
-            disabled={disabled} 
-            onClick={onAccept}
-          >
-            Accept
-          </button>
-        )}
       </form>
     </div>
   );

@@ -10,10 +10,19 @@ export const api = {
   initiateProject: (description) => {
     return client.post('/initiate-project', { description });
   },
-  executeNextStep: () => {
-    return client.post('/execute-next-step');
+  
+  // CORRECTED: Was 'executeNextStep'
+  executeStep: () => {
+    return client.post('/execute-step');
   },
-  proceedAndSave: () => {
-    return client.post('/proceed-and-save');
+  
+  // CORRECTED: Was 'proceedAndSave'
+  confirmAndProceed: () => {
+    return client.post('/confirm-and-proceed');
+  },
+  
+  // NEW: For handling feedback
+  refineStep: (feedback) => {
+    return client.post('/refine-step', { feedback });
   },
 };

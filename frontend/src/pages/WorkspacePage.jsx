@@ -6,138 +6,115 @@ import UserInput from '../components/UserInput';
 import { api } from '../api/client';
 
 export default function WorkspacePage() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  
-  // More robust state initialization directly from the router location state
-  const [plan, setPlan] = useState(location.state?.plan || null);
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [plan, setPlan] = useState(location.state?.plan || null);
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+    const [interactionLog, setInteractionLog] = useState([]);
+    const [lastAction, setLastAction] = useState(null); // Tracks a pending action
+    const [loading, setLoading] = useState(false);
+    const logEndRef = useRef(null);
 
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [interactionLog, setInteractionLog] = useState([]);
-  const [lastAction, setLastAction] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const logEndRef = useRef(null); // Ref for auto-scrolling
+    useEffect(() => {
+        if (plan) {
+            setInteractionLog([{ type: 'message', role: 'assistant', text: "Plan generated. Type 'proceed' to execute the first step." }]);
+        } else {
+            navigate('/');
+        }
+    }, []);
 
-  // This effect runs only once to initialize the page or redirect if the plan is missing
-  useEffect(() => {
-    if (plan) {
-      setInteractionLog([{ type: 'message', role: 'assistant', text: "Plan generated successfully. Type 'proceed' to execute the first step." }]);
-    } else {
-      // If the page is refreshed or accessed directly, location.state will be empty.
-      // In that case, we redirect back to the start page.
-      navigate('/');
+    useEffect(() => {
+        logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [interactionLog]);
+
+    const handleNewAgentAction = (thought, action) => {
+        setInteractionLog(prev => [...prev, { type: 'message', role: 'assistant', text: `Thought: ${thought}` }]);
+        let nextMessage = "";
+        let codeToDisplay = null;
+
+        if (action.action_type === 'create_file') {
+            codeToDisplay = action.content;
+            nextMessage = `I plan to create/update the file '${action.relative_path}'. Review the code and type 'proceed' to confirm, or provide feedback.`;
+        } else if (action.action_type === 'run_command') {
+            codeToDisplay = `COMMAND:\n${action.command}`;
+            nextMessage = "I plan to run this command. Type 'proceed' to confirm, or provide feedback.";
+        } else {
+            nextMessage = action.message || "Step complete. Type 'proceed' to confirm.";
+        }
+
+        if (codeToDisplay) {
+            setInteractionLog(prev => [...prev, { type: 'code', text: codeToDisplay, lang: getLang(action.relative_path) }]);
+        }
+        setInteractionLog(prev => [...prev, { type: 'message', role: 'assistant', text: nextMessage }]);
+        setLastAction(action);
+    };
+
+    async function handleUserInput(inputText) {
+        setLoading(true);
+        setInteractionLog(prev => [...prev, { type: 'message', role: 'user', text: inputText }]);
+        
+        const confirmationTerms = ['proceed', 'ok', 'yes', 'accept', 'continue', 'go', 'y', 'sounds good'];
+        const isConfirmation = confirmationTerms.includes(inputText.toLowerCase().trim());
+
+        try {
+            if (!lastAction) { // No action is pending, so we need to generate one for the current step.
+                if (isConfirmation) {
+                    const response = await api.executeStep();
+                    handleNewAgentAction(response.data.thought, response.data.action);
+                } else {
+                     setInteractionLog(prev => [...prev, { type: 'message', role: 'assistant', text: "Please type 'proceed' to start the action for this step." }]);
+                }
+            } else { // An action is pending confirmation or refinement.
+                if (isConfirmation) { // User confirms the pending action.
+                    const response = await api.confirmAndProceed();
+                    setLastAction(null); // Clear the pending action
+                    setCurrentStepIndex(prev => prev + 1);
+                    setInteractionLog(prev => [...prev, { type: 'message', role: 'assistant', text: response.data.message }]);
+                } else { // User provides feedback.
+                    const response = await api.refineStep(inputText);
+                    // The backend returns a new, refined action. We display it.
+                    handleNewAgentAction(response.data.thought, response.data.action);
+                }
+            }
+        } catch (err) {
+            const errorMsg = err.response?.data?.detail || 'An unexpected error occurred.';
+            setInteractionLog(prev => [...prev, { type: 'message', role: 'assistant', text: `Error: ${errorMsg}` }]);
+        } finally {
+            setLoading(false);
+        }
     }
-  }, []); // The empty dependency array is crucial here.
-
-  // This effect auto-scrolls the log to the bottom whenever a new message is added
-  useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [interactionLog]);
-
-
-  async function handleExecuteStep(inputText) {
-    setLoading(true);
-    setInteractionLog(prev => [...prev, { type: 'message', role: 'user', text: inputText }]);
-
-    if (inputText.toLowerCase().trim() !== 'proceed') {
-        setInteractionLog(prev => [...prev, { type: 'message', role: 'assistant', text: "For this demo, only 'proceed' is supported to execute the next step." }]);
-        setLoading(false);
-        return;
-    }
-
-    try {
-      const response = await api.executeNextStep();
-      const { thought, action, action_result } = response.data;
-      
-      setInteractionLog(prev => [...prev, { type: 'message', role: 'assistant', text: `Thought: ${thought}` }]);
-      
-      let nextMessage = "Action completed. Please review and click 'Accept' to save and continue.";
-      let codeToDisplay = null;
-
-      if (action.action_type === 'create_file') {
-        codeToDisplay = action.content;
-        nextMessage = `I plan to create/update the file '${action.relative_path}'. Review the code and click 'Accept'.`;
-      } else if (action.action_type === 'run_command') {
-        codeToDisplay = `COMMAND:\n${action.command}\n\nSTDOUT:\n${action_result.stdout}\n\nSTDERR:\n${action_result.stderr}`;
-        nextMessage = "Command executed. Review the output and click 'Accept'.";
-      } else {
-        nextMessage = action.message || "Step complete. Click 'Accept' to continue.";
-      }
-
-      if(codeToDisplay) {
-         setInteractionLog(prev => [...prev, { type: 'code', text: codeToDisplay, lang: getLang(action.relative_path) }]);
-      }
-      setInteractionLog(prev => [...prev, { type: 'message', role: 'assistant', text: nextMessage }]);
-      setLastAction(action);
-
-    } catch (err) {
-      const errorMsg = err.response?.data?.detail || 'An error occurred during execution.';
-      setInteractionLog(prev => [...prev, { type: 'message', role: 'assistant', text: `Error: ${errorMsg}` }]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleAcceptAndProceed() {
-    setLoading(true);
-    setInteractionLog(prev => [...prev, { type: 'message', role: 'user', text: 'Accept' }]);
     
-    try {
-        const response = await api.proceedAndSave();
-        setLastAction(null);
-        setCurrentStepIndex(prev => prev + 1);
-        setInteractionLog(prev => [...prev, { type: 'message', role: 'assistant', text: response.data.message }]);
-    } catch (err) {
-        const errorMsg = err.response?.data?.detail || 'An error occurred while saving progress.';
-        setInteractionLog(prev => [...prev, { type: 'message', role: 'assistant', text: `Error: ${errorMsg}` }]);
-    } finally {
-        setLoading(false);
-    }
-  }
+    const getLang = (path = '') => {
+        const extension = path?.split('.').pop() || '';
+        switch (extension) {
+            case 'py': return 'python';
+            case 'js': case 'jsx': return 'javascript';
+            case 'css': return 'css';
+            case 'json': return 'json';
+            case 'html': return 'html';
+            default: return 'bash';
+        }
+    };
 
-  const getLang = (path = '') => {
-    const extension = path?.split('.').pop() || '';
-    switch (extension) {
-      case 'py': return 'python';
-      case 'js':
-      case 'jsx': return 'javascript';
-      case 'css': return 'css';
-      case 'json': return 'json';
-      case 'html': return 'html';
-      default: return 'bash';
+    if (!plan || !plan.backend_plan || !plan.frontend_plan) {
+        return <div style={{color: 'white', textAlign: 'center', padding: '2rem'}}>Loading Workspace...</div>;
     }
-  }
+    
+    const fullPlanSteps = [...plan.backend_plan, ...plan.frontend_plan];
 
-  // This robust check prevents crashes. It now only renders when the plan is fully valid.
-  if (!plan || !plan.backend_plan || !plan.frontend_plan) {
     return (
-      <div style={{color: 'white', textAlign: 'center', padding: '2rem'}}>
-        Loading and preparing workspace...
-      </div>
-    );
-  }
-
-  const fullPlanSteps = [...plan.backend_plan, ...plan.frontend_plan];
-
-  return (
-    <div className="workspace-layout">
-      <div className="workspace-header">
-        <button className="btn-back" onClick={() => navigate('/')}>← Back to Initiate</button>
-        <span className="project-id">Hierra Workspace</span>
-      </div>
-      
-      <div className="workspace-content">
-        <div className="grid grid-workspace">
-          <div className="col">
-            <PlanDisplay steps={fullPlanSteps} currentStepIndex={currentStepIndex} />
-          </div>
-          <div className="col">
-            <InteractionLog items={interactionLog} logEndRef={logEndRef} />
-          </div>
+        <div className="workspace-layout">
+            <div className="workspace-header">
+                <button className="btn-back" onClick={() => navigate('/')}>← Back to Initiate</button>
+                <span className="project-id">Hierra Workspace</span>
+            </div>
+            <div className="workspace-content">
+                <div className="grid grid-workspace">
+                    <div className="col"><PlanDisplay steps={fullPlanSteps} currentStepIndex={currentStepIndex} /></div>
+                    <div className="col"><InteractionLog items={interactionLog} logEndRef={logEndRef} /></div>
+                </div>
+            </div>
+            <UserInput onSend={handleUserInput} disabled={loading} />
         </div>
-      </div>
-
-      <UserInput onSend={handleExecuteStep} onAccept={handleAcceptAndProceed} disabled={loading} hasCode={!!lastAction} />
-    </div>
-  );
+    );
 }
