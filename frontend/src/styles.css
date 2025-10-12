@@ -276,3 +276,39 @@ body {
   opacity: 0.4;
   text-decoration: line-through;
 }
+/* --- Append to styles.css --- */
+
+/* New Workspace Layout */
+.workspace-layout {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 48px - 48px); /* Full viewport height minus top/bottom margin */
+  max-height: 900px;
+  border: 1px solid var(--stroke);
+  border-radius: 0 0 10px 10px;
+  background: transparent;
+}
+
+.workspace-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* Remove the border from the old grid container */
+.grid.grid-workspace {
+  border: none;
+  padding: 0;
+}
+
+/* Ensure UserInput has a top border to separate it */
+.user-panel {
+  border-top: 1px solid var(--stroke);
+  border-radius: 0 0 10px 10px;
+  margin-top: 0;
+}
+
+/* Minor tweak to ensure panels fill height inside the grid */
+.col .panel {
+  min-height: 100%;
+}

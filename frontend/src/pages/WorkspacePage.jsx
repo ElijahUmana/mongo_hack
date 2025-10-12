@@ -6,28 +6,30 @@ import UserInput from '../components/UserInput';
 import { api } from '../api/client';
 
 export default function WorkspacePage() {
-  const [plan, setPlan] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // More robust state initialization directly from the router location state
+  const [plan, setPlan] = useState(location.state?.plan || null);
+
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [interactionLog, setInteractionLog] = useState([]);
   const [lastAction, setLastAction] = useState(null);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const logEndRef = useRef(null); // Ref to auto-scroll the log
+  const logEndRef = useRef(null); // Ref for auto-scrolling
 
-  // Effect for initial plan loading
+  // This effect runs only once to initialize the page or redirect if the plan is missing
   useEffect(() => {
-    const receivedPlan = location.state?.plan;
-    if (receivedPlan) {
-      setPlan(receivedPlan);
+    if (plan) {
       setInteractionLog([{ type: 'message', role: 'assistant', text: "Plan generated successfully. Type 'proceed' to execute the first step." }]);
     } else {
-      // If no plan is found (e.g., user refreshed the page), go back to the start
+      // If the page is refreshed or accessed directly, location.state will be empty.
+      // In that case, we redirect back to the start page.
       navigate('/');
     }
-  }, []); // Run only once on mount
+  }, []); // The empty dependency array is crucial here.
 
-  // Effect for auto-scrolling the interaction log
+  // This effect auto-scrolls the log to the bottom whenever a new message is added
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [interactionLog]);
@@ -94,7 +96,7 @@ export default function WorkspacePage() {
   }
 
   const getLang = (path = '') => {
-    const extension = path.split('.').pop();
+    const extension = path?.split('.').pop() || '';
     switch (extension) {
       case 'py': return 'python';
       case 'js':
@@ -106,8 +108,7 @@ export default function WorkspacePage() {
     }
   }
 
-  // --- CRITICAL FIX IS HERE ---
-  // This robustly checks if the plan is fully loaded before trying to render.
+  // This robust check prevents crashes. It now only renders when the plan is fully valid.
   if (!plan || !plan.backend_plan || !plan.frontend_plan) {
     return (
       <div style={{color: 'white', textAlign: 'center', padding: '2rem'}}>

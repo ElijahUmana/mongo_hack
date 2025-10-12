@@ -2,7 +2,6 @@ import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-// Add logEndRef to the props
 export default function InteractionLog({ items = [], logEndRef }) {
   return (
     <div className="panel">
@@ -19,13 +18,19 @@ export default function InteractionLog({ items = [], logEndRef }) {
               </div>
             )}
             {entry.type === 'code' && (
-               <SyntaxHighlighter language={entry.lang || 'bash'} style={atomDark} customStyle={{ margin: 0, borderRadius: '10px' }}>
-                {String(entry.text)}
+               <SyntaxHighlighter 
+                 language={entry.lang || 'bash'} 
+                 style={atomDark} 
+                 customStyle={{ margin: 0, borderRadius: '10px' }}
+                 wrapLines={true}
+                 wrapLongLines={true}
+               >
+                {String(entry.text || '')}
               </SyntaxHighlighter>
             )}
           </div>
         ))}
-        {/* Add this empty div at the end for the ref to attach to */}
+        {/* This empty div is the target for our auto-scrolling ref */}
         <div ref={logEndRef} />
       </div>
     </div>
