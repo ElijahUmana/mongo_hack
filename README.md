@@ -8,7 +8,7 @@
 
 ## About The Project
 
-Hierra is an experimental AI agent designed to tackle one of the biggest challenges in autonomous code generation: long-term context retention. Traditional LLM interactions are limited by context windows, causing agents to "forget" earlier decisions when building large projects. Hierra solves this by implementing a novel **hierarchical memory system**, allowing it to maintain a coherent understanding of the entire project, from high-level architecture down to specific lines of code.
+Hierra is an AI agent designed to tackle one of the biggest challenges in autonomous code generation: long-term context retention. Traditional LLM interactions are limited by context windows, causing agents to "forget" earlier decisions when building large projects. Hierra solves this by implementing a novel **hierarchical memory system**, allowing it to maintain a coherent understanding of the entire project, from high-level architecture down to specific lines of code.
 
 This project demonstrates a robust human-in-the-loop workflow where the agent proposes actions, and the user confirms or provides natural language feedback for refinement. The agent can create files, write code, and run terminal commands, effectively acting as an autonomous junior developer guided by a human senior.
 
